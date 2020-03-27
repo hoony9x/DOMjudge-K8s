@@ -1,0 +1,22 @@
+apiVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2
+kind: Deployment
+metadata:
+  name: redis
+  namespace: domjudge
+spec:
+  selector:
+    matchLabels:
+      app: redis
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      namespace: domjudge
+      labels:
+        app: redis
+    spec:
+      containers:
+      - image: redis:5.0-alpine
+        name: redis
+        ports:
+        - containerPort: 6379
