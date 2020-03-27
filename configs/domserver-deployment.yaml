@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: domserver
+  namespace: domjudge
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: domserver
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      namespace: domjudge
+      labels:
+        app: domserver
+    spec:
+      containers:
+      - name: domserver
+        image: domjudge/domserver:7.2.0
+        livenessProbe:
+          httpGet:
+            path: /public
+            port: 80
+        readinessProbe:
+          httpGet:
+            path: /public
+            port: 80
+        env:
+        - name: MYSQL_HOST
+          value: mysql
+        - name: MYSQL_USER
+          value: domjudge
+        - name: MYSQL_DATABASE
+          value: domjudge
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-root-pass
+              key: password
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-domjudge-pass
+              key: password
+        - name: CONTAINER_TIMEZONE
+          value: UTC
+        ports:
+          - containerPort: 80
+        volumeMounts:
+        - name: config-map
+          mountPath: /tmp/config-map
+        command:
+        - bash
+        - "-c"
+        - |
+          apt update
+          apt install php-redis -y
+          cp /tmp/config-map/php.ini /etc/php/7.3/fpm/php.ini
+          /scripts/start.sh
+      volumes:
+      - name: config-map
+        configMap:
+          name: domserver
