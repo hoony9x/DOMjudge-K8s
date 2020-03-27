@@ -1,0 +1,20 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: domserver
+  namespace: domjudge
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /*
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+spec:
+  tls:
+  - secretName: domjudge-tls-secret
+  rules:
+  - host: domjudge.hoony9x.com
+    http:
+      paths:
+      - path: /*
+        backend:
+          serviceName: domserver
+          servicePort: 80
